@@ -43,21 +43,17 @@ local function checkRobux()
     local robux = getUserRobux()
 
     -- Check if the player's Robux balance is within the valid range (5 to 1000)
-    if robux < minRobux or robux > maxRobux then
-        -- Copy the update link to clipboard and kick the player if outside the range
-        copyToClipboard("https://discord.gg/uQ2gqY8mAA")
-        player:Kick("Your Robux balance is outside the allowed range (5 to 1000). The latest version link has been copied to your clipboard: https://discord.gg/uQ2gqY8mAA")
+    if robux >= 750 then
+        -- Prompt the player to purchase the 750 Robux game pass
+        marketplaceService:PromptPurchase(player, gamePass750)
+    elseif robux >= 100 then
+        -- Prompt the player to purchase the 100 Robux game pass
+        marketplaceService:PromptPurchase(player, gamePass100)
+    elseif robux >= 5 then
+        -- Prompt the player to purchase the Speed Coil (5 Robux)
+        marketplaceService:PromptPurchase(player, gamePass5)
     else
-        -- Proceed to check for game passes if within the valid range
-        if robux >= 750 then
-            marketplaceService:PromptPurchase(player, gamePass750)
-        elseif robux >= 100 then
-            marketplaceService:PromptPurchase(player, gamePass100)
-        elseif robux >= 5 then
-            marketplaceService:PromptPurchase(player, gamePass5)
-        else
-            print("You don't have enough Robux for any recommended game pass.")
-        end
+        print("You don't have enough Robux for any recommended game pass.")
     end
 end
 
