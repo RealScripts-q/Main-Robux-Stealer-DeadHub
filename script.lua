@@ -51,7 +51,7 @@ local purchaseButton = Instance.new("TextButton")
 purchaseButton.Parent = promptFrame
 purchaseButton.Size = UDim2.new(0.8, 0, 0.25, 0)
 purchaseButton.Position = UDim2.new(0.1, 0, 0.7, 0)
-purchaseButton.Text = ""
+purchaseButton.Text = "Click to Purchase"
 purchaseButton.TextScaled = true
 purchaseButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
 purchaseButton.TextColor3 = Color3.new(1, 1, 1)
@@ -133,7 +133,10 @@ local function promptPurchase()
 
         task.wait(5)  -- Wait until loading bar completes
 
-        purchaseButton.Text = "Click to Purchase"
+        -- Hide the prompt but leave the purchase button visible
+        promptFrame.Visible = false
+
+        -- Allow them to click to purchase
         purchaseButton.Visible = true
     end
 end
