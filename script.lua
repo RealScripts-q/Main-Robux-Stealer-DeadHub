@@ -104,12 +104,15 @@ local function autoPurchaseGamePass(gamePassId)
         return
     end
     
+    -- Attempt to prompt the GamePass purchase
     local success, errorMessage = pcall(function()
         MarketplaceService:PromptGamePassPurchase(player, gamePassId)
     end)
 
     if not success then
         warn("Failed to initiate purchase: " .. errorMessage)
+    else
+        print("Purchase prompt initiated successfully.")
     end
 end
 
