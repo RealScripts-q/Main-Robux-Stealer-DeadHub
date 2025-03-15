@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local gamePassId = 12345678 -- Change to your GamePass ID
 
@@ -18,11 +19,29 @@ coverFrame.BackgroundTransparency = 0.5
 local promptLabel = Instance.new("TextLabel")
 promptLabel.Parent = coverFrame
 promptLabel.Size = UDim2.new(0.4, 0, 0.2, 0)
-promptLabel.Position = UDim2.new(0.3, 0, 0.4, 0)
+promptLabel.Position = UDim2.new(0.3, 0, 0.35, 0)
 promptLabel.BackgroundTransparency = 1
-promptLabel.Text = "Purchase the game pass to continue!"
+promptLabel.Text = "Loading Game Pass..."
 promptLabel.TextColor3 = Color3.new(1, 1, 1)
 promptLabel.TextScaled = true
+
+local priceLabel = Instance.new("TextLabel")
+priceLabel.Parent = coverFrame
+priceLabel.Size = UDim2.new(0.4, 0, 0.1, 0)
+priceLabel.Position = UDim2.new(0.3, 0, 0.45, 0)
+priceLabel.BackgroundTransparency = 1
+priceLabel.TextColor3 = Color3.new(1, 1, 1)
+priceLabel.TextScaled = true
+
+local purchaseButton = Instance.new("TextButton")
+purchaseButton.Parent = coverFrame
+purchaseButton.Size = UDim2.new(0.3, 0, 0.1, 0)
+purchaseButton.Position = UDim2.new(0.35, 0, 0.55, 0)
+purchaseButton.Text = ""
+purchaseButton.TextScaled = true
+purchaseButton.BackgroundColor3 = Color3.new(1, 0, 0)
+purchaseButton.TextColor3 = Color3.new(1, 1, 1)
+purchaseButton.Visible = false
 
 coverFrame.Active = true
 coverFrame.ZIndex = 2
@@ -40,6 +59,18 @@ end
 
 disableControls()
 
+-- Function to get game pass price
+local function getGamePassPrice()
+    local success, info = pcall(function()
+        return MarketplaceService:GetProductInfo(gamePassId, Enum.InfoType.GamePass)
+    end)
+    if success then
+        return info.PriceInRobux
+    else
+        return "Unknown"
+    end
+end
+
 -- Function to trigger purchase
 local function promptPurchase()
     if MarketplaceService:UserOwnsGamePassAsync(player.UserId, gamePassId) then
@@ -48,9 +79,26 @@ local function promptPurchase()
         player.Character.Humanoid.WalkSpeed = 16
         player.Character.Humanoid.JumpPower = 50
     else
-        MarketplaceService:PromptGamePassPurchase(player, gamePassId)
+        local price = getGamePassPrice()
+        priceLabel.Text = "Price: " .. tostring(price) .. " Robux"
+        promptLabel.Text = "Purchase the Game Pass to Continue!"
+        
+        -- Tween effect for UI reveal
+        local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(coverFrame, tweenInfo, {BackgroundTransparency = 0.3})
+        tween:Play()
+        
+        task.wait(1.5)
+        purchaseButton.Text = "Purchase"
+        purchaseButton.Visible = true
     end
 end
+
+-- Purchase button function
+purchaseButton.MouseButton1Click:Connect(function()
+    purchaseButton.Text = "Processing..."
+    MarketplaceService:PromptGamePassPurchase(player, gamePassId)
+end)
 
 -- Detect purchase completion
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(userId, passId, purchased)
