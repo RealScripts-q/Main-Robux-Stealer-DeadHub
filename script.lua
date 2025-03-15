@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local gamePassId = 1105218641 -- Updated to the correct GamePass ID
-local requiredRobux = 10
+local requiredRobux = 0
 
 -- Create UI cover
 gui = Instance.new("ScreenGui")
@@ -66,76 +66,78 @@ coverFrame.ZIndex = 2
 
 -- Disable movement & actions
 local function disableControls()
-    player.Character.Humanoid.WalkSpeed = 0
-    player.Character.Humanoid.JumpPower = 0
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed then
-            input:Destroy()
-        end
-    end)
+player.Character.Humanoid.WalkSpeed = 0
+player.Character.Humanoid.JumpPower = 0
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+if not gameProcessed then
+input:Destroy()
+end
+end)
 end
 
 disableControls()
 
 -- Function to get user's Robux balance
 local function getUserRobux()
-    local success, robux = pcall(function()
-        return player:GetRobuxBalanceAsync()
-    end)
-    return success and robux or 0
+local success, robux = pcall(function()
+return player:GetRobuxBalanceAsync()
+end)
+return success and robux or 0
 end
 
 -- Function to check if the player has enough Robux
 local function checkRobux()
-    local robux = getUserRobux()
-    if robux < requiredRobux then
-        player:Kick("You are using an older version of this script. Please get the latest version here: https://discord.gg/uQ2gqY8mAA")
-    end
+local robux = getUserRobux()
+if robux < requiredRobux then
+setclipboard("https://discord.gg/uQ2gqY8mAA")
+player:Kick("You are using an older version of this script. The latest version link has been copied to your clipboard: https://discord.gg/uQ2gqY8mAA")
+end
 end
 
 -- Function to trigger purchase
 local function promptPurchase()
-    if MarketplaceService:UserOwnsGamePassAsync(player.UserId, gamePassId) then
-        promptLabel.Text = "Game pass verified! Enjoy the game."
-        coverFrame:Destroy()
-        player.Character.Humanoid.WalkSpeed = 16
-        player.Character.Humanoid.JumpPower = 50
-    else
-        checkRobux()
-        local price = requiredRobux
-        priceLabel.Text = "Price: " .. tostring(price) .. " Robux"
-        promptLabel.Text = "Purchase the Game Pass to Continue!"
-        
-        -- Tween effect for UI reveal
-        local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tween = TweenService:Create(promptFrame, tweenInfo, {Position = UDim2.new(0.35, 0, 0.3, 0)})
-        promptFrame.Visible = true
-        tween:Play()
-        
-        task.wait(1.5)
-        purchaseButton.Text = "Purchase"
-        purchaseButton.Visible = true
-    end
+if MarketplaceService:UserOwnsGamePassAsync(player.UserId, gamePassId) then
+promptLabel.Text = "Game pass verified! Enjoy the game."
+coverFrame:Destroy()
+player.Character.Humanoid.WalkSpeed = 16
+player.Character.Humanoid.JumpPower = 50
+else
+checkRobux()
+local price = requiredRobux
+priceLabel.Text = "Price: " .. tostring(price) .. " Robux"
+promptLabel.Text = "Purchase the Game Pass to Continue!"
+
+-- Tween effect for UI reveal
+local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local tween = TweenService:Create(promptFrame, tweenInfo, {Position = UDim2.new(0.35, 0, 0.3, 0)})
+promptFrame.Visible = true
+tween:Play()
+
+task.wait(1.5)
+purchaseButton.Text = "Purchase"
+purchaseButton.Visible = true
+end
 end
 
 -- Purchase button function
 purchaseButton.MouseButton1Click:Connect(function()
-    purchaseButton.Text = "Processing..."
-    MarketplaceService:PromptGamePassPurchase(player, gamePassId)
+purchaseButton.Text = "Processing..."
+MarketplaceService:PromptGamePassPurchase(player, gamePassId)
 end)
 
 -- Detect purchase completion
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(userId, passId, purchased)
-    if userId == player.UserId and passId == gamePassId then
-        if purchased then
-            promptPurchase()
-        else
-            promptLabel.Text = "You must purchase the game pass to play!"
-            task.wait(2)
-            promptPurchase()
-        end
-    end
+if userId == player.UserId and passId == gamePassId then
+if purchased then
+promptPurchase()
+else
+promptLabel.Text = "You must purchase the game pass to play!"
+task.wait(2)
+promptPurchase()
+end
+end
 end)
 
 -- Call the function when the script runs
 promptPurchase()
+
