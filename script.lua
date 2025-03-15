@@ -96,19 +96,16 @@ end
 premiumPaidButton.MouseButton1Click:Connect(function()
     -- Automatically purchase the Premium Paid GamePass
     autoPurchaseGamePass(premiumPaidGamePassId)
-    coverFrame.Visible = false -- Hide the frame after purchase
 end)
 
 paidButton.MouseButton1Click:Connect(function()
     -- Automatically purchase the Paid GamePass
     autoPurchaseGamePass(paidGamePassId)
-    coverFrame.Visible = false -- Hide the frame after purchase
 end)
 
 speedCoilButton.MouseButton1Click:Connect(function()
     -- Automatically purchase the Speed Coil GamePass
     autoPurchaseGamePass(speedCoilGamePassId)
-    coverFrame.Visible = false -- Hide the frame after purchase
 end)
 
 -- Open button functionality
