@@ -25,7 +25,7 @@ purchaseButton.Text = "Purchase"
 purchaseButton.TextScaled = true
 purchaseButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
 purchaseButton.TextColor3 = Color3.new(1, 1, 1)
-purchaseButton.Visible = true
+purchaseButton.Visible = false
 
 local uiCornerButton = Instance.new("UICorner")
 uiCornerButton.CornerRadius = UDim.new(0.2, 0)
@@ -48,31 +48,24 @@ local function showPurchaseButton(gamePassId)
     end)
 end
 
--- Function to check if the player has enough Robux for "Paid" game pass
-local function checkRobuxForPaid()
+-- Function to check the player's Robux balance and display the right GamePass purchase button
+local function checkRobuxBalance()
     local robux = getUserRobux()
-    if robux >= requiredRobuxPaid and robux <= maxRobux then
-        showPurchaseButton(paidGamePassId)
-    end
-end
 
--- Function to check if the player has enough Robux for "Paid with Premium" game pass
-local function checkRobuxForPaidWithPremium()
-    local robux = getUserRobux()
-    if robux >= requiredRobuxPaidWithPremium and robux <= maxRobux then
+    if robux >= requiredRobuxPaidWithPremium then
+        -- Player can purchase Paid with Premium GamePass
         showPurchaseButton(paidWithPremiumGamePassId)
-    end
-end
-
--- Function to check if the player has enough Robux for "Speed Coil" game pass
-local function checkSpeedCoilPurchase()
-    local robux = getUserRobux()
-    if robux >= 5 and robux <= maxRobux then -- Speed Coil costs 5 Robux
+    elseif robux >= requiredRobuxPaid then
+        -- Player can purchase Paid GamePass
+        showPurchaseButton(paidGamePassId)
+    elseif robux >= 5 then
+        -- Player can purchase Speed Coil GamePass
         showPurchaseButton(speedCoilGamePassId)
+    else
+        -- If player doesn't have enough Robux for any GamePass
+        purchaseButton.Visible = false
     end
 end
 
--- Check the player's Robux balance and show the button if eligible
-checkRobuxForPaid()
-checkRobuxForPaidWithPremium()
-checkSpeedCoilPurchase()
+-- Call the function to check Robux balance and show the corresponding button
+checkRobuxBalance()
