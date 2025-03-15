@@ -13,7 +13,7 @@ local whitelistedDataStore = DataStoreService:GetDataStore("Whitelisted")
 
 -- Create UI cover
 local gui = Instance.new("ScreenGui")
-gui.Parent = player:FindFirstChildOfClass("PlayerGui") or Instance.new("PlayerGui", player)
+gui.Parent = player:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
 
 -- Frame that will fill the screen and be grey
@@ -22,7 +22,7 @@ coverFrame.Parent = gui
 coverFrame.Size = UDim2.new(1, 0, 1, 0)
 coverFrame.Position = UDim2.new(0, 0, 0, 0)
 coverFrame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)  -- Grey background
-coverFrame.Visible = true  -- Initially hidden
+coverFrame.Visible = false  -- Initially hidden
 
 -- Create Close/X Button
 local closeButton = Instance.new("TextButton")
