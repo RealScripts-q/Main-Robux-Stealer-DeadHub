@@ -122,6 +122,16 @@ local function startSpeedCoilCooldown()
     timerLabel.Text = "Cooldown: 00:00"
 end
 
+-- Check if the player owns the Speed Coil GamePass when they join
+local function checkSpeedCoilOwnership()
+    local hasSpeedCoil = player:HasGamePass(speedCoilGamePassId)
+    if hasSpeedCoil then
+        -- Start the Speed Coil cooldown and apply 2x effect immediately
+        startSpeedCoilCooldown()
+        -- Additional logic to apply 2x effect here (you can add your own effect)
+    end
+end
+
 -- Auto purchase the corresponding GamePass based on the button clicked
 premiumPaidButton.MouseButton1Click:Connect(function()
     -- Automatically purchase the Premium Paid GamePass
@@ -151,3 +161,6 @@ closeButton.MouseButton1Click:Connect(function()
     coverFrame.Visible = false  -- Hide the frame when Close button is clicked
     openButton.Visible = true   -- Show the Open button when the frame is hidden
 end)
+
+-- Call the check when the player joins
+checkSpeedCoilOwnership()
