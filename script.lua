@@ -91,28 +91,14 @@ timerLabel.TextScaled = true
 timerLabel.BackgroundTransparency = 1
 timerLabel.TextColor3 = Color3.new(1, 1, 1)
 
--- Function to check if the player already owns the GamePass
-local function playerHasGamePass(gamePassId)
-    return player:HasGamePass(gamePassId)
-end
-
 -- Function to automatically purchase the GamePass
 local function autoPurchaseGamePass(gamePassId)
-    -- Check if the player already owns the GamePass
-    if playerHasGamePass(gamePassId) then
-        print("Player already owns the GamePass.")
-        return
-    end
-    
-    -- Attempt to prompt the GamePass purchase
     local success, errorMessage = pcall(function()
         MarketplaceService:PromptGamePassPurchase(player, gamePassId)
     end)
 
     if not success then
         warn("Failed to initiate purchase: " .. errorMessage)
-    else
-        print("Purchase prompt initiated successfully.")
     end
 end
 
