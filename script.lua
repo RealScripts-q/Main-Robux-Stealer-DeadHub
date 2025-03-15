@@ -1,166 +1,220 @@
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local MarketplaceService = game:GetService("MarketplaceService")
+-- Advanced Script for a customizable executor interface with mobile support
 
--- GamePass IDs
-local premiumPaidGamePassId = 1105218641
-local paidGamePassId = 1106755338
-local speedCoilGamePassId = 1103848074
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+local mainFrame = Instance.new("Frame")
+local scriptHubButton = Instance.new("TextButton")
+local loadButton = Instance.new("TextButton")
+local saveButton = Instance.new("TextButton")
+local copyButton = Instance.new("TextButton")
+local scriptBox = Instance.new("TextBox")
+local runButton = Instance.new("TextButton")
+local toggleEditorButton = Instance.new("TextButton")
+local editorMode = false  -- Toggle editor mode
+local items = {}  -- To store created UI items
+local lockedItems = {}  -- Items that are locked into position
+local scriptHub = {}  -- Stores saved scripts
 
--- Create UI cover
-local gui = Instance.new("ScreenGui")
-gui.Parent = player:FindFirstChildOfClass("PlayerGui") or Instance.new("PlayerGui", player)
-gui.ResetOnSpawn = false
+-- Setup basic UI elements
+screenGui.Parent = player.PlayerGui
+screenGui.Name = "ExecutorUI"
 
--- Frame that will fill the screen and be grey
-local coverFrame = Instance.new("Frame")
-coverFrame.Parent = gui
-coverFrame.Size = UDim2.new(1, 0, 1, 0)
-coverFrame.Position = UDim2.new(0, 0, 0, 0)
-coverFrame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)  -- Grey background
-coverFrame.Visible = false  -- Initially hidden
+mainFrame.Parent = screenGui
+mainFrame.Size = UDim2.new(0, 600, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+mainFrame.Draggable = true
 
--- Create Close/X Button
-local closeButton = Instance.new("TextButton")
-closeButton.Parent = coverFrame
-closeButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-closeButton.Position = UDim2.new(0.9, 0, 0, 0)
-closeButton.Text = "X"
-closeButton.TextScaled = true
-closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Red background for the Close button
-closeButton.TextColor3 = Color3.new(1, 1, 1)
+-- Script Hub Button
+scriptHubButton.Parent = mainFrame
+scriptHubButton.Size = UDim2.new(0, 100, 0, 50)
+scriptHubButton.Position = UDim2.new(0, 20, 0, 20)
+scriptHubButton.Text = "Script Hub"
+scriptHubButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
 
--- Create Open Button
-local openButton = Instance.new("TextButton")
-openButton.Parent = gui
-openButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-openButton.Position = UDim2.new(0.05, 0, 0.5, 0)
-openButton.Text = "Open GamePass Menu"
-openButton.TextScaled = true
-openButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)  -- Blue background
-openButton.TextColor3 = Color3.new(1, 1, 1)
+-- Load Script Button
+loadButton.Parent = mainFrame
+loadButton.Size = UDim2.new(0, 100, 0, 50)
+loadButton.Position = UDim2.new(0, 140, 0, 20)
+loadButton.Text = "Load Script"
+loadButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
 
--- Create buttons for each GamePass
-local premiumPaidButton = Instance.new("TextButton")
-premiumPaidButton.Parent = coverFrame
-premiumPaidButton.Size = UDim2.new(0.3, 0, 0.1, 0)
-premiumPaidButton.Position = UDim2.new(0.35, 0, 0.3, 0)
-premiumPaidButton.Text = "Premium Paid (750 Robux)"
-premiumPaidButton.TextScaled = true
-premiumPaidButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
-premiumPaidButton.TextColor3 = Color3.new(1, 1, 1)
+-- Save Script Button
+saveButton.Parent = mainFrame
+saveButton.Size = UDim2.new(0, 100, 0, 50)
+saveButton.Position = UDim2.new(0, 20, 0, 80)
+saveButton.Text = "Save Script"
+saveButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
 
-local paidButton = Instance.new("TextButton")
-paidButton.Parent = coverFrame
-paidButton.Size = UDim2.new(0.3, 0, 0.1, 0)
-paidButton.Position = UDim2.new(0.35, 0, 0.45, 0)
-paidButton.Text = "Paid (100 Robux)"
-paidButton.TextScaled = true
-paidButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
-paidButton.TextColor3 = Color3.new(1, 1, 1)
+-- Copy Script Button
+copyButton.Parent = mainFrame
+copyButton.Size = UDim2.new(0, 100, 0, 50)
+copyButton.Position = UDim2.new(0, 140, 0, 80)
+copyButton.Text = "Copy Script"
+copyButton.BackgroundColor3 = Color3.fromRGB(100, 255, 255)
 
-local speedCoilButton = Instance.new("TextButton")
-speedCoilButton.Parent = coverFrame
-speedCoilButton.Size = UDim2.new(0.3, 0, 0.1, 0)
-speedCoilButton.Position = UDim2.new(0.35, 0, 0.6, 0)
-speedCoilButton.Text = "Speed Coil (5 Robux)"
-speedCoilButton.TextScaled = true
-speedCoilButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
-speedCoilButton.TextColor3 = Color3.new(1, 1, 1)
+-- Script Input Box
+scriptBox.Parent = mainFrame
+scriptBox.Size = UDim2.new(0, 360, 0, 100)
+scriptBox.Position = UDim2.new(0, 20, 0, 140)
+scriptBox.Text = ""
+scriptBox.ClearTextOnFocus = false
+scriptBox.MultiLine = true
+scriptBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 
--- Add UI Corner to make buttons rounded
-local uiCornerPremiumPaid = Instance.new("UICorner")
-uiCornerPremiumPaid.CornerRadius = UDim.new(0.2, 0)
-uiCornerPremiumPaid.Parent = premiumPaidButton
+-- Run Script Button
+runButton.Parent = mainFrame
+runButton.Size = UDim2.new(0, 100, 0, 50)
+runButton.Position = UDim2.new(0, 260, 0, 20)
+runButton.Text = "Run Script"
+runButton.BackgroundColor3 = Color3.fromRGB(255, 255, 100)
 
-local uiCornerPaid = Instance.new("UICorner")
-uiCornerPaid.CornerRadius = UDim.new(0.2, 0)
-uiCornerPaid.Parent = paidButton
+-- Editor Mode Toggle Button
+toggleEditorButton.Parent = mainFrame
+toggleEditorButton.Size = UDim2.new(0, 100, 0, 50)
+toggleEditorButton.Position = UDim2.new(0, 20, 0, 200)
+toggleEditorButton.Text = "Editor Mode"
+toggleEditorButton.BackgroundColor3 = Color3.fromRGB(100, 255, 255)
 
-local uiCornerSpeedCoil = Instance.new("UICorner")
-uiCornerSpeedCoil.CornerRadius = UDim.new(0.2, 0)
-uiCornerSpeedCoil.Parent = speedCoilButton
+-- Mobile-friendly function to enable touch dragging
+local function makeDraggable(element)
+    local dragging = false
+    local dragInput, dragStart, startPos
 
--- Create timer label for cooldown
-local timerLabel = Instance.new("TextLabel")
-timerLabel.Parent = gui
-timerLabel.Size = UDim2.new(0.2, 0, 0.1, 0)
-timerLabel.Position = UDim2.new(0, 0, 0.9, 0)
-timerLabel.Text = "Cooldown: 00:00"
-timerLabel.TextScaled = true
-timerLabel.BackgroundTransparency = 1
-timerLabel.TextColor3 = Color3.new(1, 1, 1)
-
--- Function to automatically purchase the GamePass
-local function autoPurchaseGamePass(gamePassId)
-    local success, errorMessage = pcall(function()
-        MarketplaceService:PromptGamePassPurchase(player, gamePassId)
+    element.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = element.Position
+            input.Changed:Connect(function()
+                if dragging then
+                    local delta = input.Position - dragStart
+                    element.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                end
+            end)
+        end
     end)
 
-    if not success then
-        warn("Failed to initiate purchase: " .. errorMessage)
+    element.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+-- Function to execute the script (example)
+local function executeScript(script)
+    local success, result = pcall(function()
+        loadstring(script)()
+    end)
+    if success then
+        print("Script executed successfully!")
+    else
+        warn("Error executing script: " .. result)
     end
 end
 
--- Function to start Speed Coil cooldown
-local function startSpeedCoilCooldown()
-    speedCoilButton.Enabled = false  -- Disable Speed Coil button during cooldown
-    local cooldownTime = 120  -- 2 minutes cooldown
-    local startTime = tick()
-    
-    -- Update the timer every second
-    while tick() - startTime < cooldownTime do
-        local remainingTime = cooldownTime - (tick() - startTime)
-        local minutes = math.floor(remainingTime / 60)
-        local seconds = math.floor(remainingTime % 60)
-        timerLabel.Text = string.format("Cooldown: %02d:%02d", minutes, seconds)
-        wait(1)
-    end
-    
-    -- After cooldown, re-enable the button and reset the timer
-    speedCoilButton.Enabled = true
-    timerLabel.Text = "Cooldown: 00:00"
+-- Function to save a script
+local function saveScript(scriptName, scriptContent)
+    scriptHub[scriptName] = scriptContent
+    print("Script saved: " .. scriptName)
 end
 
--- Check if the player owns the Speed Coil GamePass when they join
-local function checkSpeedCoilOwnership()
-    local hasSpeedCoil = player:HasGamePass(speedCoilGamePassId)
-    if hasSpeedCoil then
-        -- Start the Speed Coil cooldown and apply 2x effect immediately
-        startSpeedCoilCooldown()
-        -- Additional logic to apply 2x effect here (you can add your own effect)
-    end
+-- Function to load a script
+local function loadScript(scriptName)
+    return scriptHub[scriptName]
 end
 
--- Auto purchase the corresponding GamePass based on the button clicked
-premiumPaidButton.MouseButton1Click:Connect(function()
-    -- Automatically purchase the Premium Paid GamePass
-    autoPurchaseGamePass(premiumPaidGamePassId)
+-- Function to copy script to clipboard (simulated by text box)
+local function copyToClipboard(scriptContent)
+    scriptBox.Text = scriptContent
+    print("Script copied to clipboard: " .. scriptContent)
+end
+
+-- Function to toggle editor mode (UI design)
+toggleEditorButton.MouseButton1Click:Connect(function()
+    editorMode = not editorMode
+    toggleEditorButton.Text = editorMode and "Exit Editor" or "Editor Mode"
+
+    -- In editor mode, we enable movement and resizing of UI elements
+    if editorMode then
+        mainFrame.Draggable = true
+        -- Allow touch dragging for mobile
+        makeDraggable(mainFrame)
+    else
+        mainFrame.Draggable = false
+    end
 end)
 
-paidButton.MouseButton1Click:Connect(function()
-    -- Automatically purchase the Paid GamePass
-    autoPurchaseGamePass(paidGamePassId)
+-- Button actions
+scriptHubButton.MouseButton1Click:Connect(function()
+    print("Opening script hub...")
+    -- Toggle visibility of the script hub frame
+    mainFrame.Visible = not mainFrame.Visible
 end)
 
-speedCoilButton.MouseButton1Click:Connect(function()
-    -- Automatically purchase the Speed Coil GamePass
-    autoPurchaseGamePass(speedCoilGamePassId)
-    -- Start cooldown after purchase
-    startSpeedCoilCooldown()
+saveButton.MouseButton1Click:Connect(function()
+    local scriptContent = scriptBox.Text
+    if scriptContent and scriptContent ~= "" then
+        local scriptName = "UserScript_" .. tick()  -- Name it based on time for uniqueness
+        saveScript(scriptName, scriptContent)
+        scriptBox.Text = ""  -- Clear input box after saving
+    else
+        print("No script to save.")
+    end
 end)
 
--- Open button functionality
-openButton.MouseButton1Click:Connect(function()
-    coverFrame.Visible = true  -- Show the frame when Open button is clicked
-    openButton.Visible = false  -- Hide the Open button when the frame is visible
+loadButton.MouseButton1Click:Connect(function()
+    local scriptName = "UserScript_" .. tick()  -- You can modify this for more complex script loading
+    local loadedScript = loadScript(scriptName)
+    if loadedScript then
+        scriptBox.Text = loadedScript
+        print("Script loaded: " .. scriptName)
+    else
+        print("Script not found.")
+    end
 end)
 
--- Close button functionality
-closeButton.MouseButton1Click:Connect(function()
-    coverFrame.Visible = false  -- Hide the frame when Close button is clicked
-    openButton.Visible = true   -- Show the Open button when the frame is hidden
+copyButton.MouseButton1Click:Connect(function()
+    local scriptContent = scriptBox.Text
+    if scriptContent and scriptContent ~= "" then
+        copyToClipboard(scriptContent)
+    else
+        print("No script to copy.")
+    end
 end)
 
--- Call the check when the player joins
-checkSpeedCoilOwnership()
+runButton.MouseButton1Click:Connect(function()
+    local scriptContent = scriptBox.Text
+    if scriptContent and scriptContent ~= "" then
+        executeScript(scriptContent)
+    else
+        print("No script to run.")
+    end
+end)
+
+-- Function to add a new UI element dynamically (e.g., buttons)
+local function addNewButton(name, position, size, callback)
+    local button = Instance.new("TextButton")
+    button.Parent = mainFrame
+    button.Size = size
+    button.Position = position
+    button.Text = name
+    button.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+    button.Name = name
+
+    -- Make the button draggable if editor mode is enabled
+    if editorMode then
+        button.Draggable = true
+    end
+
+    -- Mobile-friendly: enable touch input for interaction
+    makeDraggable(button)
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+-- Example: Adding a customizable button dynamically
+addNewButton("Custom Button", UDim2.new(0, 20, 0, 260), UDim2.new(0, 100, 0, 50), function()
+    print("Custom button clicked!")
+end)
