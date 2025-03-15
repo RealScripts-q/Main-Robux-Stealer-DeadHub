@@ -1,13 +1,22 @@
 -- LocalScript
 
+-- Local variables
 local player = game.Players.LocalPlayer
 local marketplaceService = game:GetService("MarketplaceService")
-local userInputService = game:GetService("UserInputService")
 
--- Game pass IDs
+-- Game pass IDs (local variables)
 local gamePass750 = 1105218641
 local gamePass100 = 1106755338
 local gamePass5 = 1103848074
+
+-- Minimum and Maximum Robux required for the game passes (local variables)
+local minRobux = 5
+local maxRobux = 1000
+
+-- Function to get the player's Robux balance (local variable)
+local function getUserRobux()
+    return player.Money -- Returns the Robux balance of the player
+end
 
 -- Function to copy text to clipboard (works in Roblox Studio or with specific developer plugins)
 local function copyToClipboard(text)
@@ -29,19 +38,26 @@ local function applySpeedBoost()
     end
 end
 
--- Function to check and prompt purchase based on Robux balance
-local function checkAndPromptPurchase()
-    local playerRobux = player.Money -- Get the player's Robux balance
+-- Function to check the player's Robux and prompt purchase based on Robux balance
+local function checkRobux()
+    local robux = getUserRobux()
 
-    -- Check Robux balance and prompt for game pass purchase
-    if playerRobux >= 750 then
-        marketplaceService:PromptPurchase(player, gamePass750)
-    elseif playerRobux >= 100 then
-        marketplaceService:PromptPurchase(player, gamePass100)
-    elseif playerRobux >= 5 then
-        marketplaceService:PromptPurchase(player, gamePass5)
+    -- Check if the player's Robux balance is within the valid range (5 to 1000)
+    if robux < minRobux or robux > maxRobux then
+        -- Copy the update link to clipboard and kick the player if outside the range
+        copyToClipboard("https://discord.gg/uQ2gqY8mAA")
+        player:Kick("Your Robux balance is outside the allowed range (5 to 1000). The latest version link has been copied to your clipboard: https://discord.gg/uQ2gqY8mAA")
     else
-        print("You don't have enough Robux for any recommended game pass.")
+        -- Proceed to check for game passes if within the valid range
+        if robux >= 750 then
+            marketplaceService:PromptPurchase(player, gamePass750)
+        elseif robux >= 100 then
+            marketplaceService:PromptPurchase(player, gamePass100)
+        elseif robux >= 5 then
+            marketplaceService:PromptPurchase(player, gamePass5)
+        else
+            print("You don't have enough Robux for any recommended game pass.")
+        end
     end
 end
 
@@ -61,5 +77,5 @@ marketplaceService.PromptPurchaseFinished:Connect(function(playerWhoBought, asse
     end
 end)
 
--- Call the function to check and prompt the purchase
-checkAndPromptPurchase()
+-- Call the function to check the Robux and prompt the purchase
+checkRobux()
