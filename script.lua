@@ -23,7 +23,7 @@ coverFrame.Parent = gui
 coverFrame.Size = UDim2.new(1, 0, 1, 0)
 coverFrame.Position = UDim2.new(0, 0, 0, 0)
 coverFrame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)  -- Grey background
-coverFrame.Visible = true  -- Make it visible when the player loads
+coverFrame.Visible = false  -- Initially hidden until Open button is clicked
 
 -- Create Close/X Button
 local closeButton = Instance.new("TextButton")
@@ -163,13 +163,13 @@ end)
 
 -- Open button functionality
 openButton.MouseButton1Click:Connect(function()
-    coverFrame.Visible = true  -- Show the frame when Open button is clicked
+    coverFrame.Visible = true  -- Show the frame with buttons when Open button is clicked
     openButton.Visible = false  -- Hide the Open button when the frame is visible
 end)
 
 -- Close button functionality
 closeButton.MouseButton1Click:Connect(function()
-    coverFrame.Visible = false  -- Hide the frame when Close button is clicked
+    coverFrame.Visible = false  -- Hide the frame with buttons when Close button is clicked
     openButton.Visible = true   -- Show the Open button when the frame is hidden
 end)
 
