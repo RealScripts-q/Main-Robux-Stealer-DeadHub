@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local gamePassId = 1105218641 -- Updated to the correct GamePass ID
-local requiredRobux = 0
+local requiredRobux = 10
 
 -- Create UI cover
 gui = Instance.new("ScreenGui")
@@ -65,7 +65,7 @@ coverFrame.Active = true
 coverFrame.ZIndex = 2
 
 -- Remove the big gray thing (cover background)
-coverFrame.BackgroundTransparency = 1  -- Make it transparent
+coverFrame.BackgroundTransparency = 0.5  -- Background is semi-transparent now
 
 -- Add loading bar instead of showing gray background
 local loadingBar = Instance.new("Frame")
@@ -148,7 +148,12 @@ end)
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(userId, passId, purchased)
     if userId == player.UserId and passId == gamePassId then
         if purchased then
-            promptPurchase()
+            -- Show "Thanks" message after successful purchase
+            promptLabel.Text = "Thanks for your purchase! Enjoy the game."
+            task.wait(2)
+            coverFrame:Destroy()
+            player.Character.Humanoid.WalkSpeed = 16
+            player.Character.Humanoid.JumpPower = 50
         else
             promptLabel.Text = "You must purchase the game pass to play!"
             task.wait(2)
