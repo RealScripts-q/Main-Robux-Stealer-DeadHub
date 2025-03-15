@@ -25,7 +25,7 @@ purchaseButton.Text = "Purchase"
 purchaseButton.TextScaled = true
 purchaseButton.BackgroundColor3 = Color3.fromRGB(0, 176, 255)
 purchaseButton.TextColor3 = Color3.new(1, 1, 1)
-purchaseButton.Visible = false
+purchaseButton.Visible = true
 
 local uiCornerButton = Instance.new("UICorner")
 uiCornerButton.CornerRadius = UDim.new(0.2, 0)
