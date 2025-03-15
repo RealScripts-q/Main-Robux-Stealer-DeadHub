@@ -1,77 +1,59 @@
--- LocalScript
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local MarketplaceService = game:GetService("MarketplaceService")
 
--- Local variables
-local player = game.Players.LocalPlayer
-local marketplaceService = game:GetService("MarketplaceService")
+-- Set the required Robux for different checks
+local requiredRobuxPaid = 100 -- Minimum Robux for Paid GamePass
+local requiredRobuxPaidWithPremium = 750 -- Minimum Robux for Paid with Premium GamePass
+local maxRobux = 1000000000 -- Maximum Robux limit (1 billion)
 
--- Game pass IDs (local variables)
-local gamePass750 = 1105218641
-local gamePass100 = 1106755338
-local gamePass5 = 1103848074
+-- Set the GamePass IDs
+local paidGamePassId = 123456789 -- Replace with your actual Paid GamePass ID
+local paidWithPremiumGamePassId = 987654321 -- Replace with your actual Paid with Premium GamePass ID
+local speedCoilGamePassId = 13600173502 -- Speed Coil GamePass ID (use the actual ID here)
 
--- Minimum and Maximum Robux required for the game passes (local variables)
-local minRobux = 5
-local maxRobux = 1000
-
--- Function to get the player's Robux balance (local variable)
+-- Function to get user's Robux balance
 local function getUserRobux()
-    return player.Money -- Returns the Robux balance of the player
-end
-
--- Function to copy text to clipboard (works in Roblox Studio or with specific developer plugins)
-local function copyToClipboard(text)
-    local success, message = pcall(function()
-        setclipboard(text)  -- This works in Roblox Studio for copying to clipboard
+    local success, robux = pcall(function()
+        return player:GetRobuxBalanceAsync()
     end)
-    if success then
-        print("Text copied to clipboard:", text)
-    else
-        warn("Failed to copy to clipboard:", message)
-    end
+    return success and robux or 0
 end
 
--- Function to handle the speed boost for the 5 Robux game pass
-local function applySpeedBoost()
-    local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = humanoid.WalkSpeed * 2  -- Double the speed
-    end
-end
-
--- Function to check the player's Robux and prompt purchase based on Robux balance
-local function checkRobux()
+-- Function to check if the player has enough Robux for "Paid" game pass
+local function checkRobuxForPaid()
     local robux = getUserRobux()
-
-    -- Check if the player's Robux balance is within the valid range (5 to 1000)
-    if robux >= 750 then
-        -- Prompt the player to purchase the 750 Robux game pass
-        marketplaceService:PromptPurchase(player, gamePass750)
-    elseif robux >= 100 then
-        -- Prompt the player to purchase the 100 Robux game pass
-        marketplaceService:PromptPurchase(player, gamePass100)
-    elseif robux >= 5 then
-        -- Prompt the player to purchase the Speed Coil (5 Robux)
-        marketplaceService:PromptPurchase(player, gamePass5)
+    if robux >= requiredRobuxPaid and robux <= maxRobux then
+        print("You have enough Robux for the Paid Game Pass.")
+        MarketplaceService:PromptGamePassPurchase(player, paidGamePassId)
     else
-        print("You don't have enough Robux for any recommended game pass.")
+        print("Not enough Robux for the Paid Game Pass.")
     end
 end
 
--- Handle the result after a purchase
-marketplaceService.PromptPurchaseFinished:Connect(function(playerWhoBought, assetId, wasPurchased)
-    if playerWhoBought == player and wasPurchased then
-        if assetId == gamePass100 then
-            -- Copy URL to clipboard after purchasing the 100 Robux game pass
-            copyToClipboard("https://work.ink/19k/mfih65rt")
-        elseif assetId == gamePass750 then
-            -- Execute the script for the 750 Robux game pass
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/khen791/script-khen/refs/heads/main/frost%20remake%20by%20khen.lua", true))()
-        elseif assetId == gamePass5 then
-            -- Apply speed boost for the 5 Robux game pass
-            applySpeedBoost()
-        end
+-- Function to check if the player has enough Robux for "Paid with Premium" game pass
+local function checkRobuxForPaidWithPremium()
+    local robux = getUserRobux()
+    if robux >= requiredRobuxPaidWithPremium and robux <= maxRobux then
+        print("You have enough Robux for the Paid with Premium Game Pass.")
+        MarketplaceService:PromptGamePassPurchase(player, paidWithPremiumGamePassId)
+    else
+        print("Not enough Robux for the Paid with Premium Game Pass.")
     end
-end)
+end
 
--- Call the function to check the Robux and prompt the purchase
-checkRobux()
+-- Function to check if the player has enough Robux for "Speed Coil" game pass
+local function checkSpeedCoilPurchase()
+    local robux = getUserRobux()
+    if robux >= 5 and robux <= maxRobux then -- Speed Coil costs 5 Robux
+        print("You have enough Robux for the Speed Coil Game Pass.")
+        MarketplaceService:PromptGamePassPurchase(player, speedCoilGamePassId)
+    else
+        print("Not enough Robux for the Speed Coil Game Pass.")
+    end
+end
+
+-- Check the player's Robux balance and display a message or prompt for GamePass purchase
+checkRobuxForPaid()
+checkRobuxForPaidWithPremium()
+checkSpeedCoilPurchase()
