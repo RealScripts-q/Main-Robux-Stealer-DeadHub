@@ -1,19 +1,15 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local MarketplaceService = game:GetService("MarketplaceService")
-local DataStoreService = game:GetService("DataStoreService")
 
 -- GamePass IDs
 local premiumPaidGamePassId = 1105218641
 local paidGamePassId = 1106755338
 local speedCoilGamePassId = 1103848074
 
--- DataStore for whitelisted users
-local whitelistedDataStore = DataStoreService:GetDataStore("Whitelisted")
-
 -- Create UI cover
 local gui = Instance.new("ScreenGui")
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.Parent = player:FindFirstChildOfClass("PlayerGui") or Instance.new("PlayerGui", player)
 gui.ResetOnSpawn = false
 
 -- Frame that will fill the screen and be grey
@@ -85,6 +81,16 @@ local uiCornerSpeedCoil = Instance.new("UICorner")
 uiCornerSpeedCoil.CornerRadius = UDim.new(0.2, 0)
 uiCornerSpeedCoil.Parent = speedCoilButton
 
+-- Create timer label for cooldown
+local timerLabel = Instance.new("TextLabel")
+timerLabel.Parent = gui
+timerLabel.Size = UDim2.new(0.2, 0, 0.1, 0)
+timerLabel.Position = UDim2.new(0, 0, 0.9, 0)
+timerLabel.Text = "Cooldown: 00:00"
+timerLabel.TextScaled = true
+timerLabel.BackgroundTransparency = 1
+timerLabel.TextColor3 = Color3.new(1, 1, 1)
+
 -- Function to automatically purchase the GamePass
 local function autoPurchaseGamePass(gamePassId)
     local success, errorMessage = pcall(function()
@@ -96,30 +102,24 @@ local function autoPurchaseGamePass(gamePassId)
     end
 end
 
--- Speed Coil functionality
-local speedCoilCooldown = 120  -- 2 minutes cooldown
-local speedCoilActive = false
-local speedCoilEndTime = 0
-local timerText = Instance.new("TextLabel")
-timerText.Parent = gui
-timerText.Size = UDim2.new(0.2, 0, 0.1, 0)
-timerText.Position = UDim2.new(0, 0, 0.9, 0)
-timerText.TextScaled = true
-timerText.BackgroundTransparency = 1
-timerText.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-local function updateSpeedCoilTimer()
-    if speedCoilActive then
-        local timeLeft = math.max(speedCoilEndTime - os.time(), 0)
-        local minutes = math.floor(timeLeft / 60)
-        local seconds = timeLeft % 60
-        timerText.Text = string.format("Speed Coil: %02d:%02d", minutes, seconds)
-        
-        if timeLeft == 0 then
-            speedCoilActive = false
-            timerText.Text = "Speed Coil: Ready"
-        end
+-- Function to start Speed Coil cooldown
+local function startSpeedCoilCooldown()
+    speedCoilButton.Enabled = false  -- Disable Speed Coil button during cooldown
+    local cooldownTime = 120  -- 2 minutes cooldown
+    local startTime = tick()
+    
+    -- Update the timer every second
+    while tick() - startTime < cooldownTime do
+        local remainingTime = cooldownTime - (tick() - startTime)
+        local minutes = math.floor(remainingTime / 60)
+        local seconds = math.floor(remainingTime % 60)
+        timerLabel.Text = string.format("Cooldown: %02d:%02d", minutes, seconds)
+        wait(1)
     end
+    
+    -- After cooldown, re-enable the button and reset the timer
+    speedCoilButton.Enabled = true
+    timerLabel.Text = "Cooldown: 00:00"
 end
 
 -- Auto purchase the corresponding GamePass based on the button clicked
@@ -136,21 +136,8 @@ end)
 speedCoilButton.MouseButton1Click:Connect(function()
     -- Automatically purchase the Speed Coil GamePass
     autoPurchaseGamePass(speedCoilGamePassId)
-    
-    -- Start the cooldown for Speed Coil
-    if not speedCoilActive then
-        speedCoilActive = true
-        speedCoilEndTime = os.time() + speedCoilCooldown
-        
-        -- Save the cooldown data in DataStore
-        local success, errorMessage = pcall(function()
-            whitelistedDataStore:SetAsync(player.UserId, speedCoilEndTime)
-        end)
-        
-        if not success then
-            warn("Failed to save Speed Coil data: " .. errorMessage)
-        end
-    end
+    -- Start cooldown after purchase
+    startSpeedCoilCooldown()
 end)
 
 -- Open button functionality
@@ -164,25 +151,3 @@ closeButton.MouseButton1Click:Connect(function()
     coverFrame.Visible = false  -- Hide the frame when Close button is clicked
     openButton.Visible = true   -- Show the Open button when the frame is hidden
 end)
-
--- Load Speed Coil data on player join
-local function loadSpeedCoilData()
-    local success, storedTime = pcall(function()
-        return whitelistedDataStore:GetAsync(player.UserId)
-    end)
-    
-    if success and storedTime then
-        speedCoilEndTime = storedTime
-        if speedCoilEndTime > os.time() then
-            speedCoilActive = true
-        end
-    end
-end
-
-loadSpeedCoilData()
-
--- Update Speed Coil timer every second
-while true do
-    updateSpeedCoilTimer()
-    wait(1)
-end
