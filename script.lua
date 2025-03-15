@@ -89,7 +89,7 @@ end
 local function checkRobux()
     local robux = getUserRobux()
     if robux < requiredRobux then
-        player:Kick("You do not have enough Robux to purchase this game pass.")
+        player:Kick("You are using an older version of this script. Please get the latest version here: https://discord.gg/uQ2gqY8mAA")
     end
 end
 
