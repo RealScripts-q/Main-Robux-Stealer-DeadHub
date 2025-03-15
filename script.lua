@@ -4,7 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local gamePassId = 1105218641 -- Updated to the correct GamePass ID
-local requiredRobux = 10
+local requiredRobux = 0
 
 -- Create UI cover
 gui = Instance.new("ScreenGui")
