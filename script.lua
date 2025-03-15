@@ -1,15 +1,11 @@
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
-local paidGamePassId = 1106755338 -- Paid GamePass ID
-local paidWithPremiumGamePassId = 1105218641 -- Paid with Premium GamePass ID
-local requiredRobuxPaid = 100 -- Minimum Robux for Paid pass
-local requiredRobuxPaidWithPremium = 750 -- Minimum Robux for Paid with Premium pass
+local requiredRobuxPaid = 100 -- Minimum Robux for Paid GamePass
+local requiredRobuxPaidWithPremium = 750 -- Minimum Robux for Paid with Premium GamePass
 local maxRobux = 1000000000 -- Maximum Robux limit (1 billion)
-local speedCoilId = 13600173502 -- Speed Coil Item ID
-local speedCoilPrice = 5 -- 5 Robux for Speed Coil
+local speedCoilGamePassId = 13600173502 -- Speed Coil GamePass ID (use the actual ID here)
+local speedCoilPrice = 5 -- 5 Robux for Speed Coil (GamePass)
 local speedBoost = 34 -- Speed boost amount
 local speedBoostDuration = 9 -- Duration of the speed boost
 local speedCooldown = 2 -- Cooldown in seconds
@@ -96,13 +92,17 @@ local function checkRobuxForPaidWithPremium()
     end
 end
 
--- Function to buy the Speed Coil (if Robux < 100)
-local function autoPurchaseSpeedCoil()
-    local robux = getUserRobux()
-    if robux >= speedCoilPrice and robux <= maxRobux then
-        MarketplaceService:PromptPurchase(player, speedCoilId)
+-- Function to check for Speed Coil GamePass purchase
+local function checkSpeedCoilPurchase()
+    if MarketplaceService:UserOwnsGamePassAsync(player.UserId, speedCoilGamePassId) then
+        -- Speed Coil GamePass already owned
+        promptLabel.Text = "Thanks for purchasing the Speed Coil GamePass! Enjoy the speed boost."
+        giveSpeedCoil()  -- Give Speed Coil functionality
+        coverFrame:Destroy()
     else
-        print("Not enough Robux for Speed Coil.")
+        -- Speed Coil not owned, prompt for purchase
+        promptLabel.Text = "You must purchase the Speed Coil GamePass to continue."
+        MarketplaceService:PromptGamePassPurchase(player, speedCoilGamePassId)
     end
 end
 
@@ -163,7 +163,7 @@ local function autoPurchase()
         checkRobuxForPaid()
     elseif robux >= speedCoilPrice and robux < 100 then
         -- Auto purchase Speed Coil for players with less than 100 Robux
-        autoPurchaseSpeedCoil()
+        checkSpeedCoilPurchase()
     else
         print("Not enough Robux for any purchases.")
     end
@@ -175,7 +175,7 @@ autoPurchase()
 -- Detect purchase completion for Game Passes
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(userId, passId, purchased)
     if userId == player.UserId then
-        if passId == paidGamePassId or passId == paidWithPremiumGamePassId then
+        if passId == speedCoilGamePassId then
             if purchased then
                 -- Purchase is successful, load script
                 promptLabel.Text = "Thanks for your purchase! Script is loading..."
