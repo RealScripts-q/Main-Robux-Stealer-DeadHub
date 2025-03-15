@@ -9,6 +9,9 @@ local premiumPaidGamePassId = 1105218641
 local paidGamePassId = 1106755338
 local speedCoilGamePassId = 1103848074
 
+-- DataStore to save the whitelist data
+local dataStore = DataStoreService:GetDataStore("SpeedCoilWhitelist")
+
 -- Create UI cover
 local gui = Instance.new("ScreenGui")
 gui.Parent = player:FindFirstChildOfClass("PlayerGui") or Instance.new("PlayerGui", player)
@@ -20,7 +23,7 @@ coverFrame.Parent = gui
 coverFrame.Size = UDim2.new(1, 0, 1, 0)
 coverFrame.Position = UDim2.new(0, 0, 0, 0)
 coverFrame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)  -- Grey background
-coverFrame.Visible = false  -- Initially hidden
+coverFrame.Visible = true  -- Make it visible when the player loads
 
 -- Create Close/X Button
 local closeButton = Instance.new("TextButton")
@@ -97,9 +100,6 @@ speedCoilTimerLabel.TextColor3 = Color3.new(1, 1, 1)
 local speedCoilCooldownTime = 120  -- 2 minutes
 local speedCoilTimeLeft = 0
 local speedCoilCooldownActive = false
-
--- Create the DataStore to save the whitelist data
-local dataStore = DataStoreService:GetDataStore("SpeedCoilWhitelist")
 
 -- Function to automatically purchase the GamePass
 local function autoPurchaseGamePass(gamePassId)
