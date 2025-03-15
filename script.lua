@@ -22,7 +22,7 @@ coverFrame.Parent = gui
 coverFrame.Size = UDim2.new(1, 0, 1, 0)
 coverFrame.Position = UDim2.new(0, 0, 0, 0)
 coverFrame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)  -- Grey background
-coverFrame.Visible = false  -- Initially hidden
+coverFrame.Visible = true  -- Initially hidden
 
 -- Create Close/X Button
 local closeButton = Instance.new("TextButton")
