@@ -1,220 +1,160 @@
--- Advanced Script for a customizable executor interface with mobile support
-
-local player = game.Players.LocalPlayer
+-- Create a ScreenGui to hold the interface
 local screenGui = Instance.new("ScreenGui")
-local mainFrame = Instance.new("Frame")
-local scriptHubButton = Instance.new("TextButton")
-local loadButton = Instance.new("TextButton")
-local saveButton = Instance.new("TextButton")
-local copyButton = Instance.new("TextButton")
-local scriptBox = Instance.new("TextBox")
-local runButton = Instance.new("TextButton")
-local toggleEditorButton = Instance.new("TextButton")
-local editorMode = false  -- Toggle editor mode
-local items = {}  -- To store created UI items
-local lockedItems = {}  -- Items that are locked into position
-local scriptHub = {}  -- Stores saved scripts
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Setup basic UI elements
-screenGui.Parent = player.PlayerGui
-screenGui.Name = "ExecutorUI"
+-- Create a frame to act as the window (Synapse-like)
+local window = Instance.new("Frame")
+window.Size = UDim2.new(0, 400, 0, 300)
+window.Position = UDim2.new(0.5, -200, 0.5, -150)
+window.BackgroundColor3 = Color3.fromRGB(30, 30, 30)  -- Dark background
+window.BackgroundTransparency = 0.2
+window.BorderSizePixel = 0
+window.Parent = screenGui
 
-mainFrame.Parent = screenGui
-mainFrame.Size = UDim2.new(0, 600, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-mainFrame.Draggable = true
+-- Add a title bar to the window
+local titleBar = Instance.new("TextLabel")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.Text = "Lua Executor (Synapse-like)"
+titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+titleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleBar.TextSize = 18
+titleBar.TextAlignment = Enum.TextAlignment.Center
+titleBar.Parent = window
 
--- Script Hub Button
-scriptHubButton.Parent = mainFrame
-scriptHubButton.Size = UDim2.new(0, 100, 0, 50)
-scriptHubButton.Position = UDim2.new(0, 20, 0, 20)
-scriptHubButton.Text = "Script Hub"
-scriptHubButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+-- Add a text box to input Lua code
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(1, -20, 0, 150)
+inputBox.Position = UDim2.new(0, 10, 0, 40)
+inputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.TextSize = 14
+inputBox.Multiline = true
+inputBox.ClearTextOnFocus = false
+inputBox.PlaceholderText = "Enter Lua code here..."
+inputBox.Parent = window
 
--- Load Script Button
-loadButton.Parent = mainFrame
-loadButton.Size = UDim2.new(0, 100, 0, 50)
-loadButton.Position = UDim2.new(0, 140, 0, 20)
-loadButton.Text = "Load Script"
-loadButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+-- Add a button to run the script
+local executeButton = Instance.new("TextButton")
+executeButton.Size = UDim2.new(0, 150, 0, 40)
+executeButton.Position = UDim2.new(0.5, -75, 1, -60)
+executeButton.Text = "Execute Script"
+executeButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+executeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+executeButton.TextSize = 16
+executeButton.Parent = window
 
--- Save Script Button
-saveButton.Parent = mainFrame
-saveButton.Size = UDim2.new(0, 100, 0, 50)
-saveButton.Position = UDim2.new(0, 20, 0, 80)
-saveButton.Text = "Save Script"
-saveButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+-- Add a settings tab button
+local settingsButton = Instance.new("TextButton")
+settingsButton.Size = UDim2.new(0, 150, 0, 40)
+settingsButton.Position = UDim2.new(0.5, -75, 0, 10)
+settingsButton.Text = "Settings"
+settingsButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+settingsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+settingsButton.TextSize = 16
+settingsButton.Parent = window
 
--- Copy Script Button
-copyButton.Parent = mainFrame
-copyButton.Size = UDim2.new(0, 100, 0, 50)
-copyButton.Position = UDim2.new(0, 140, 0, 80)
-copyButton.Text = "Copy Script"
-copyButton.BackgroundColor3 = Color3.fromRGB(100, 255, 255)
+-- Create a settings frame (hidden by default)
+local settingsFrame = Instance.new("Frame")
+settingsFrame.Size = UDim2.new(0, 400, 0, 150)
+settingsFrame.Position = UDim2.new(0.5, -200, 1, -150)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+settingsFrame.Visible = false
+settingsFrame.Parent = screenGui
 
--- Script Input Box
-scriptBox.Parent = mainFrame
-scriptBox.Size = UDim2.new(0, 360, 0, 100)
-scriptBox.Position = UDim2.new(0, 20, 0, 140)
-scriptBox.Text = ""
-scriptBox.ClearTextOnFocus = false
-scriptBox.MultiLine = true
-scriptBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+-- Create a slider for changing screen height in settings
+local heightLabel = Instance.new("TextLabel")
+heightLabel.Size = UDim2.new(0, 200, 0, 30)
+heightLabel.Position = UDim2.new(0, 10, 0, 10)
+heightLabel.Text = "Window Height:"
+heightLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+heightLabel.TextSize = 14
+heightLabel.Parent = settingsFrame
 
--- Run Script Button
-runButton.Parent = mainFrame
-runButton.Size = UDim2.new(0, 100, 0, 50)
-runButton.Position = UDim2.new(0, 260, 0, 20)
-runButton.Text = "Run Script"
-runButton.BackgroundColor3 = Color3.fromRGB(255, 255, 100)
+local heightSlider = Instance.new("Slider")
+heightSlider.Size = UDim2.new(0, 200, 0, 20)
+heightSlider.Position = UDim2.new(0, 10, 0, 50)
+heightSlider.MinValue = 200
+heightSlider.MaxValue = 500
+heightSlider.Value = window.Size.Y.Offset
+heightSlider.Parent = settingsFrame
 
--- Editor Mode Toggle Button
-toggleEditorButton.Parent = mainFrame
-toggleEditorButton.Size = UDim2.new(0, 100, 0, 50)
-toggleEditorButton.Position = UDim2.new(0, 20, 0, 200)
-toggleEditorButton.Text = "Editor Mode"
-toggleEditorButton.BackgroundColor3 = Color3.fromRGB(100, 255, 255)
+-- Function to save the script
+local function saveScript(scriptCode)
+    local file = Instance.new("StringValue")
+    file.Name = "SavedScript"
+    file.Value = scriptCode
+    file.Parent = game.ServerStorage
+    print("Script saved!")
+end
 
--- Mobile-friendly function to enable touch dragging
-local function makeDraggable(element)
-    local dragging = false
-    local dragInput, dragStart, startPos
+-- Function to load the saved script
+local function loadScript()
+    local file = game.ServerStorage:FindFirstChild("SavedScript")
+    if file then
+        inputBox.Text = file.Value
+        print("Script loaded!")
+    else
+        print("No saved script found.")
+    end
+end
 
-    element.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = element.Position
-            input.Changed:Connect(function()
-                if dragging then
-                    local delta = input.Position - dragStart
-                    element.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-                end
-            end)
+-- Function to execute the entered script
+local function executeScript()
+    local scriptCode = inputBox.Text
+    
+    -- Check if the code is empty
+    if scriptCode == "" then
+        print("No code entered!")
+        return
+    end
+
+    -- Load and execute the script using loadstring
+    local func, err = loadstring(scriptCode)
+    if not func then
+        print("Error: " .. err)
+    else
+        -- Safely execute the script
+        local success, result = pcall(func)
+        if not success then
+            print("Runtime Error: " .. result)
+        else
+            print("Script executed successfully!")
         end
-    end)
-
-    element.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-end
-
--- Function to execute the script (example)
-local function executeScript(script)
-    local success, result = pcall(function()
-        loadstring(script)()
-    end)
-    if success then
-        print("Script executed successfully!")
-    else
-        warn("Error executing script: " .. result)
     end
 end
 
--- Function to save a script
-local function saveScript(scriptName, scriptContent)
-    scriptHub[scriptName] = scriptContent
-    print("Script saved: " .. scriptName)
+-- Auto execute saved script (if exists)
+local function autoExecuteScript()
+    loadScript()
+    executeScript()
 end
 
--- Function to load a script
-local function loadScript(scriptName)
-    return scriptHub[scriptName]
-end
+-- Auto execute script on startup
+autoExecuteScript()
 
--- Function to copy script to clipboard (simulated by text box)
-local function copyToClipboard(scriptContent)
-    scriptBox.Text = scriptContent
-    print("Script copied to clipboard: " .. scriptContent)
-end
+-- Connect the execute button to the execute function
+executeButton.MouseButton1Click:Connect(executeScript)
 
--- Function to toggle editor mode (UI design)
-toggleEditorButton.MouseButton1Click:Connect(function()
-    editorMode = not editorMode
-    toggleEditorButton.Text = editorMode and "Exit Editor" or "Editor Mode"
-
-    -- In editor mode, we enable movement and resizing of UI elements
-    if editorMode then
-        mainFrame.Draggable = true
-        -- Allow touch dragging for mobile
-        makeDraggable(mainFrame)
-    else
-        mainFrame.Draggable = false
-    end
+-- Connect the settings button to toggle the settings frame
+settingsButton.MouseButton1Click:Connect(function()
+    settingsFrame.Visible = not settingsFrame.Visible
 end)
 
--- Button actions
-scriptHubButton.MouseButton1Click:Connect(function()
-    print("Opening script hub...")
-    -- Toggle visibility of the script hub frame
-    mainFrame.Visible = not mainFrame.Visible
+-- Update the window height based on the slider value
+heightSlider.Changed:Connect(function()
+    window.Size = UDim2.new(0, 400, 0, heightSlider.Value)
 end)
 
-saveButton.MouseButton1Click:Connect(function()
-    local scriptContent = scriptBox.Text
-    if scriptContent and scriptContent ~= "" then
-        local scriptName = "UserScript_" .. tick()  -- Name it based on time for uniqueness
-        saveScript(scriptName, scriptContent)
-        scriptBox.Text = ""  -- Clear input box after saving
-    else
-        print("No script to save.")
-    end
-end)
+-- Optionally save script manually
+saveScriptButton = Instance.new("TextButton")
+saveScriptButton.Size = UDim2.new(0, 150, 0, 40)
+saveScriptButton.Position = UDim2.new(0.5, -75, 0, 60)
+saveScriptButton.Text = "Save Script"
+saveScriptButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+saveScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+saveScriptButton.TextSize = 16
+saveScriptButton.Parent = window
 
-loadButton.MouseButton1Click:Connect(function()
-    local scriptName = "UserScript_" .. tick()  -- You can modify this for more complex script loading
-    local loadedScript = loadScript(scriptName)
-    if loadedScript then
-        scriptBox.Text = loadedScript
-        print("Script loaded: " .. scriptName)
-    else
-        print("Script not found.")
-    end
-end)
-
-copyButton.MouseButton1Click:Connect(function()
-    local scriptContent = scriptBox.Text
-    if scriptContent and scriptContent ~= "" then
-        copyToClipboard(scriptContent)
-    else
-        print("No script to copy.")
-    end
-end)
-
-runButton.MouseButton1Click:Connect(function()
-    local scriptContent = scriptBox.Text
-    if scriptContent and scriptContent ~= "" then
-        executeScript(scriptContent)
-    else
-        print("No script to run.")
-    end
-end)
-
--- Function to add a new UI element dynamically (e.g., buttons)
-local function addNewButton(name, position, size, callback)
-    local button = Instance.new("TextButton")
-    button.Parent = mainFrame
-    button.Size = size
-    button.Position = position
-    button.Text = name
-    button.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
-    button.Name = name
-
-    -- Make the button draggable if editor mode is enabled
-    if editorMode then
-        button.Draggable = true
-    end
-
-    -- Mobile-friendly: enable touch input for interaction
-    makeDraggable(button)
-
-    button.MouseButton1Click:Connect(callback)
-end
-
--- Example: Adding a customizable button dynamically
-addNewButton("Custom Button", UDim2.new(0, 20, 0, 260), UDim2.new(0, 100, 0, 50), function()
-    print("Custom button clicked!")
+saveScriptButton.MouseButton1Click:Connect(function()
+    saveScript(inputBox.Text)
 end)
